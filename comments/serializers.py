@@ -7,8 +7,10 @@ class CommentListSerializer(serializers.ModelSerializer):
     first_reply = serializers.SerializerMethodField()
 
     def get_first_reply(self, obj):
-        first = obj.replies.all()[:1]
-        return ReplySerializer(first, many=True).data
+        reply = obj.replies.order_by("created_at").first()
+        if reply:
+            return ReplySerializer(reply).data
+        return None
 
     class Meta:
         model = Comment

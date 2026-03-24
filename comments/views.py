@@ -19,4 +19,13 @@ class CommentRepliesAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         parent_id = self.kwargs["pk"]
+        first_reply = (
+            Comment.objects.filter(parent_id=parent_id).order_by("created_at").first()
+        )
+        if first_reply:
+            return (
+                Comment.objects.filter(parent_id=parent_id)
+                .exclude(id=first_reply.id)
+                .order_by("created_at")
+            )
         return Comment.objects.filter(parent_id=parent_id).order_by("created_at")

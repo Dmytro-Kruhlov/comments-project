@@ -19,5 +19,17 @@ dev = [
     "isort",
     "autoflake",
     "ty",
-    "pre-commit"
+    "pre-commit",
+    "mypy>=1.19.1",
+    "django-stubs>=6.0.1",
 ]
+
+[tool.mypy]
+python_version = "3.14"
+plugins = ["mypy_django_plugin.main"]
+
+ignore_missing_imports = true
+strict = false
+
+[tool.django-stubs]
+django_settings_module = "config.settings"

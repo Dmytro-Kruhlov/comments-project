@@ -1,0 +1,58 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        run: |
+          curl -Ls https://astral.sh/uv/install.sh | sh
+
+      - name: Install Python
+        run: |
+          uv python install 3.14
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-groups
+
+      - name: Run pre-commit
+        run: |
+          uv run pre-commit run --all-files
+
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        run: |
+          curl -Ls https://astral.sh/uv/install.sh | sh
+
+      - name: Install Python
+        run: |
+          uv python install 3.14
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-groups
+
+      - name: Run tests
+        run: |
+          uv run python manage.py test

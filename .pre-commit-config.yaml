@@ -52,9 +52,9 @@ repos:
     hooks:
       - id: ty
         name: ty type checker
-        entry: ty
+        entry: ty check
         language: system
-        types: [python]
+        types: [ python ]
 
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.17.0

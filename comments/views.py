@@ -1,5 +1,11 @@
-from rest_framework import generics
+import uuid
 
+from django.core.cache import cache
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .captcha import generate_captcha
 from .models import Comment
 from .pagination import CommentPagination, ReplyPagination
 from .serializers import CommentCreateSerializer, CommentListSerializer, ReplySerializer
@@ -34,3 +40,14 @@ class CommentRepliesAPIView(generics.ListAPIView):
 class CommentCreateAPIView(generics.CreateAPIView):
     serializer_class = CommentCreateSerializer
     queryset = Comment.objects.all()
+
+
+class CaptchaAPIView(APIView):
+    def get(self, request):
+        text, image = generate_captcha()
+
+        captcha_id = str(uuid.uuid4())
+
+        cache.set(captcha_id, text, timeout=300)
+
+        return Response({"captcha_id": captcha_id, "image": image})

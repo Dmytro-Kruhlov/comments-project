@@ -1,6 +1,7 @@
 import re
 
 import bleach
+from django.core.cache import cache
 from rest_framework import serializers
 
 from .models import Comment
@@ -33,10 +34,20 @@ class ReplySerializer(serializers.ModelSerializer):
 
 class CommentCreateSerializer(serializers.ModelSerializer):
     text = serializers.CharField(allow_blank=True)
+    captcha_id = serializers.CharField(write_only=True)
+    captcha = serializers.CharField(write_only=True)
 
     class Meta:
         model = Comment
-        fields = ("username", "email", "homepage", "text", "parent")
+        fields = (
+            "username",
+            "email",
+            "homepage",
+            "text",
+            "parent",
+            "captcha_id",
+            "captcha",
+        )
         extra_kwargs = {"parent": {"required": False, "allow_null": True}}
 
     def validate_text(self, value):
@@ -56,3 +67,17 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         if not re.match(r"^[a-zA-Z0-9]+$", value):
             raise serializers.ValidationError("Only latin letters and digits allowed")
         return value
+
+    def validate(self, attrs):
+        captcha_id = attrs.get("captcha_id")
+        captcha_value = attrs.get("captcha")
+
+        real_value = cache.get(captcha_id)
+
+        if not real_value:
+            raise serializers.ValidationError("Captcha expired")
+
+        if captcha_value.lower() != real_value.lower():
+            raise serializers.ValidationError("Invalid captcha")
+
+        return attrs

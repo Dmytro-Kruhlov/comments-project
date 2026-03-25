@@ -1,6 +1,11 @@
 from django.urls import path
 
-from .views import CommentCreateAPIView, CommentRepliesAPIView, RootCommentListAPIView
+from .views import (
+    CaptchaAPIView,
+    CommentCreateAPIView,
+    CommentRepliesAPIView,
+    RootCommentListAPIView,
+)
 
 urlpatterns = [
     path("comments/", RootCommentListAPIView.as_view(), name="comments-list"),
@@ -10,4 +15,5 @@ urlpatterns = [
         name="comments-replies",
     ),
     path("comments/create/", CommentCreateAPIView.as_view(), name="comment-create"),
+    path("captcha/", CaptchaAPIView.as_view(), name="captcha"),
 ]

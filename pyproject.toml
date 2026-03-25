@@ -12,6 +12,7 @@ dependencies = [
     "pillow",
     "bleach>=6.3.0",
     "types-bleach>=6.3.0.20251115",
+    "captcha>=0.7.1",
 ]
 
 [dependency-groups]

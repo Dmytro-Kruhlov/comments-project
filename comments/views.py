@@ -2,7 +2,7 @@ from rest_framework import generics
 
 from .models import Comment
 from .pagination import CommentPagination, ReplyPagination
-from .serializers import CommentListSerializer, ReplySerializer
+from .serializers import CommentCreateSerializer, CommentListSerializer, ReplySerializer
 
 
 class RootCommentListAPIView(generics.ListAPIView):
@@ -29,3 +29,8 @@ class CommentRepliesAPIView(generics.ListAPIView):
                 .order_by("created_at")
             )
         return Comment.objects.filter(parent_id=parent_id).order_by("created_at")
+
+
+class CommentCreateAPIView(generics.CreateAPIView):
+    serializer_class = CommentCreateSerializer
+    queryset = Comment.objects.all()

@@ -5,9 +5,13 @@ from .views import (
     CommentCreateAPIView,
     CommentRepliesAPIView,
     RootCommentListAPIView,
+    add_comment,
+    index,
 )
 
 urlpatterns = [
+    path("", index),
+    path("add/", add_comment, name="add"),
     path("comments/", RootCommentListAPIView.as_view(), name="comments-list"),
     path(
         "comments/<int:pk>/replies/",

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Комментарии</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        .comment, .reply { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .reply { margin-left: 20px; background-color: #f9f9f9; }
+        .reply-button, .show-replies { margin-top: 5px; cursor: pointer; color: blue; text-decoration: underline; }
+        .comment-form { margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; display: none; }
+        .captcha-img { display: block; margin-top: 5px; }
+        .refresh-captcha { cursor: pointer; color: blue; text-decoration: underline; margin-left: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Комментарии</h1>
+    <button id="new-comment-btn">Написать комментарий</button>
+
+    <div id="comment-form" class="comment-form">
+        <input type="text" class="username" placeholder="Имя"><br>
+        <input type="email" class="email" placeholder="Email"><br>
+        <textarea class="text" placeholder="Комментарий"></textarea><br>
+        <input type="hidden" class="captcha-id">
+        <input type="text" class="captcha-input" placeholder="Введите капчу"><br>
+        <img class="captcha-img" src="" alt="captcha">
+        <span class="refresh-captcha">Обновить капчу</span><br>
+        <button class="submit-comment">Отправить</button>
+    </div>
+
+    <div id="comments-container"></div>
+
+<script>
+async function fetchJson(url) {
+    const res = await fetch(url);
+    return res.json();
+}
+
+async function loadComments() {
+    const container = document.getElementById('comments-container');
+    container.innerHTML = '';
+    const data = await fetchJson('/api/comments/');
+    data.results.forEach(comment => {
+        container.appendChild(createCommentDiv(comment));
+    });
+}
+
+function createCommentDiv(comment) {
+    const div = document.createElement('div');
+    div.className = 'comment';
+    div.dataset.commentId = comment.id;
+
+    div.innerHTML = `
+        <strong>${comment.username}</strong>: ${comment.text}<br>
+        <small>${new Date(comment.created_at).toLocaleString()}</small><br>
+        <span class="reply-button">Ответить</span>
+        <div class="replies"></div>
+    `;
+
+    const repliesDiv = div.querySelector('.replies');
+
+    if (comment.first_reply) {
+        repliesDiv.appendChild(createCommentDiv(comment.first_reply));
+    }
+
+    const showMoreBtn = document.createElement('span');
+    showMoreBtn.className = 'show-replies';
+    showMoreBtn.textContent = 'Показать еще';
+    repliesDiv.appendChild(showMoreBtn);
+
+    showMoreBtn.addEventListener('click', async () => {
+        const repliesData = await fetchJson(`/api/comments/${comment.id}/replies/`);
+        repliesDiv.innerHTML = '';
+        repliesData.results.forEach(r => {
+            repliesDiv.appendChild(createCommentDiv(r));
+        });
+    });
+
+    div.querySelector('.reply-button').addEventListener('click', () => {
+        let formDiv = div.querySelector('.reply-form');
+        if (!formDiv) {
+            formDiv = document.createElement('div');
+            formDiv.className = 'comment-form reply-form';
+            formDiv.innerHTML = `
+                <input type="text" class="r-username" placeholder="Имя"><br>
+                <input type="email" class="r-email" placeholder="Email"><br>
+                <textarea class="r-text" placeholder="Комментарий"></textarea><br>
+                <input type="hidden" class="r-captchaId">
+                <input type="text" class="r-captchaInput" placeholder="Введите капчу"><br>
+                <img class="r-captchaImg" src="" alt="captcha">
+                <span class="r-refreshCaptcha">Обновить капчу</span><br>
+                <button class="r-submitComment">Отправить</button>
+            `;
+            div.appendChild(formDiv);
+            setupForm(formDiv, comment.id);
+        }
+        formDiv.style.display = formDiv.style.display === 'none' ? 'block' : 'none';
+    });
+
+    return div;
+}
+
+function setupForm(formDiv, parentId) {
+    const captchaImg = formDiv.querySelector('.captcha-img, .r-captchaImg');
+    const captchaIdInput = formDiv.querySelector('.captcha-id, .r-captchaId');
+    const captchaInput = formDiv.querySelector('.captcha-input, .r-captchaInput');
+    const refreshBtn = formDiv.querySelector('.refresh-captcha, .r-refreshCaptcha');
+    const submitBtn = formDiv.querySelector('.submit-comment, .r-submitComment');
+    const usernameInput = formDiv.querySelector('.username, .r-username');
+    const emailInput = formDiv.querySelector('.email, .r-email');
+    const textInput = formDiv.querySelector('.text, .r-text');
+
+    async function loadCaptcha() {
+        const res = await fetch('/api/captcha/');
+        const data = await res.json();
+        captchaIdInput.value = data.captcha_id;
+        captchaImg.src = 'data:image/png;base64,' + data.image;
+    }
+
+    loadCaptcha();
+    refreshBtn.addEventListener('click', loadCaptcha);
+
+    submitBtn.addEventListener('click', async () => {
+        const payload = {
+            username: usernameInput.value,
+            email: emailInput.value,
+            text: textInput.value,
+            captcha: captchaInput.value,
+            captcha_id: captchaIdInput.value,
+            parent: parentId
+        };
+
+        const res = await fetch('/api/comments/create/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            alert('Комментарий добавлен!');
+            formDiv.style.display = 'none';
+            loadComments();
+        } else {
+            alert('Ошибка: ' + JSON.stringify(data));
+            loadCaptcha();
+        }
+    });
+}
+
+// Главная форма
+document.getElementById('new-comment-btn').addEventListener('click', () => {
+    const formDiv = document.getElementById('comment-form');
+    formDiv.style.display = formDiv.style.display === 'none' ? 'block' : 'none';
+    setupForm(formDiv, null);
+});
+
+// Загрузка комментариев при старте
+loadComments();
+</script>
+</body>
+</html>

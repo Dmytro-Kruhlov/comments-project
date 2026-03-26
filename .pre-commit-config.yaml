@@ -43,13 +43,16 @@ repos:
     hooks:
       - id: black
 
-  - repo: local
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
     hooks:
       - id: mypy
-        name: mypy
-        entry: mypy
-        language: system
-        types: [ python ]
+        additional_dependencies:
+          - django-stubs
+          - djangorestframework
+          - djangorestframework-stubs
+          - types-bleach
+          - psycopg[binary]
         env:
           USE_SQLITE_FOR_MYPY: "1"
 

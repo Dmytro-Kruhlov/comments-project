@@ -15,5 +15,5 @@ def generate_captcha():
     buffer = BytesIO()
     buffer.write(data.read())
     image_base64 = base64.b64encode(buffer.getvalue()).decode()
-
+    print("CAPTCHA text:", text)
     return text, image_base64

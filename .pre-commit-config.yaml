@@ -52,6 +52,9 @@ repos:
           - djangorestframework
           - djangorestframework-stubs
           - types-bleach
+          - psycopg[binary]
+        env:
+          USE_SQLITE_FOR_MYPY: "1"
 
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.17.0

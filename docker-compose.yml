@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:15
+    container_name: comments_db
+    restart: always
+    environment:
+      POSTGRES_DB: comments_db
+      POSTGRES_USER: comments_user
+      POSTGRES_PASSWORD: securepassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: comments_web
+    command: uv run python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_NAME: comments_db
+      DB_USER: comments_user
+      DB_PASSWORD: securepassword
+      DB_HOST: db
+      DB_PORT: 5432
+
+volumes:
+  postgres_data:

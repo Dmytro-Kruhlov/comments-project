@@ -50,4 +50,6 @@ class CaptchaAPIView(APIView):
 
         cache.set(captcha_id, text, timeout=300)
 
-        return Response({"captcha_id": captcha_id, "image": image})
+        return Response(
+            {"captcha_id": captcha_id, "image": image, "captcha_text_for_testing": text}
+        )

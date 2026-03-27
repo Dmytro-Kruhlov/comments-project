@@ -1,5 +1,5 @@
 FROM python:3.11-slim
-
+ENV UV_PROJECT_ENVIRONMENT=/tmp/venv
 # Системные зависимости
 RUN apt-get update && apt-get install -y \
     gcc \

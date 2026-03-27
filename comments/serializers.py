@@ -81,3 +81,9 @@ class CommentCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid captcha")
 
         return attrs
+
+    def create(self, validated_data):
+
+        validated_data.pop("captcha_id", None)
+        validated_data.pop("captcha", None)
+        return super().create(validated_data)

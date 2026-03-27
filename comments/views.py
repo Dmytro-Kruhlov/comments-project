@@ -1,7 +1,8 @@
 import uuid
 
 from django.core.cache import cache
-from rest_framework import generics
+from django.shortcuts import render
+from rest_framework import filters, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -11,11 +12,23 @@ from .pagination import CommentPagination, ReplyPagination
 from .serializers import CommentCreateSerializer, CommentListSerializer, ReplySerializer
 
 
+def index(request):
+    return render(request, "index.html")
+
+
+def add_comment(request):
+    return render(request, "add.html")
+
+
 class RootCommentListAPIView(generics.ListAPIView):
 
-    queryset = Comment.objects.filter(parent=None).order_by("-created_at")
+    queryset = Comment.objects.filter(parent=None)
     serializer_class = CommentListSerializer
     pagination_class = CommentPagination
+
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["username", "email", "created_at"]
+    ordering = ["-created_at"]
 
 
 class CommentRepliesAPIView(generics.ListAPIView):
@@ -50,6 +63,4 @@ class CaptchaAPIView(APIView):
 
         cache.set(captcha_id, text, timeout=300)
 
-        return Response(
-            {"captcha_id": captcha_id, "image": image, "captcha_text_for_testing": text}
-        )
+        return Response({"captcha_id": captcha_id, "image": image})

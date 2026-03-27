@@ -74,14 +74,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-# if os.getenv("USE_SQLITE_FOR_MYPY") == "1":
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.sqlite3",
-#             "NAME": ":memory:",
-#         }
-#     }
-# else:
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",

@@ -37,8 +37,7 @@ repos:
           - djangorestframework-stubs
           - types-bleach
           - psycopg[binary]
-#        env:
-#          USE_SQLITE_FOR_MYPY: "1"
+
 
   - repo: https://github.com/PyCQA/autoflake
     rev: v2.3.1

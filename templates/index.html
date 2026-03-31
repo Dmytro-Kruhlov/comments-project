@@ -2,161 +2,1266 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Комментарии</title>
+    <title>Комментарии — SPA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
-        .comment, .reply { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
-        .reply { margin-left: 20px; background-color: #f9f9f9; }
-        .reply-button, .show-replies { margin-top: 5px; cursor: pointer; color: blue; text-decoration: underline; }
-        .comment-form { margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; display: none; }
-        .captcha-img { display: block; margin-top: 5px; }
-        .refresh-captcha { cursor: pointer; color: blue; text-decoration: underline; margin-left: 5px; }
+        :root {
+            --bg: #0f172a;
+            --bg-elevated: #020617;
+            --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.1);
+            --accent-strong: #0ea5e9;
+            --border-subtle: #1f2937;
+            --text-main: #e5e7eb;
+            --text-muted: #9ca3af;
+            --danger: #f97373;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
+            color: var(--text-main);
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            backdrop-filter: blur(16px);
+            background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.9));
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-title-pill {
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--text-muted);
+        }
+
+        .app-main {
+            padding: 24px;
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        }
+
+        @media (max-width: 900px) {
+            .app-main {
+                grid-template-columns: minmax(0, 1fr);
+                padding: 16px;
+            }
+        }
+
+        .panel {
+            background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.05), rgba(15, 23, 42, 0.95));
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow:
+                0 24px 50px rgba(15, 23, 42, 0.9),
+                inset 0 0 0 1px rgba(15, 23, 42, 0.7);
+            padding: 18px 18px 16px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #cbd5f5;
+        }
+
+        .panel-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.24), rgba(15, 23, 42, 0.9));
+            color: #e5f4ff;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(56, 189, 248, 0.3);
+            border-color: var(--accent-strong);
+        }
+
+        .btn-ghost {
+            background: rgba(15, 23, 42, 0.7);
+            border-color: rgba(148, 163, 184, 0.3);
+            color: var(--text-muted);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(15, 23, 42, 1);
+            color: var(--text-main);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .btn-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .chip {
+            padding: 3px 9px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table th,
+        .table td {
+            padding: 8px 6px;
+        }
+
+        .table th {
+            border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+            color: var(--text-muted);
+            font-weight: 500;
+            text-align: left;
+            font-size: 12px;
+            user-select: none;
+        }
+
+        .table th.sortable {
+            cursor: pointer;
+        }
+
+        .sort-indicator {
+            margin-left: 4px;
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px dotted rgba(75, 85, 99, 0.7);
+        }
+
+        .table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .username-cell {
+            font-weight: 500;
+        }
+
+        .meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .comment-text {
+            margin-top: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .reply-thread {
+            margin-top: 4px;
+            border-left: 1px dashed rgba(148, 163, 184, 0.4);
+            padding-left: 10px;
+        }
+
+        .reply-item {
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        .inline-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .tag-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .tag-btn {
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            padding: 2px 8px;
+            font-size: 11px;
+            background: rgba(15, 23, 42, 0.7);
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .tag-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .field-label {
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+        }
+
+        .field-label span {
+            color: #f97316;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .input,
+        .textarea {
+            padding: 7px 9px;
+            border-radius: 9px;
+            border: 1px solid rgba(30, 64, 175, 0.7);
+            background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), #020617);
+            color: var(--text-main);
+            font-size: 13px;
+        }
+
+        .input:focus,
+        .textarea:focus {
+            outline: none;
+            border-color: var(--accent-strong);
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.55);
+        }
+
+        .textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .helper {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .error {
+            font-size: 11px;
+            color: var(--danger);
+        }
+
+        .captcha-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .captcha-img {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: #020617;
+        }
+
+        .captcha-img img {
+            display: block;
+            max-height: 48px;
+        }
+
+        .files-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .file-chip {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .file-chip strong {
+            color: #e5e7eb;
+        }
+
+        .preview-pane {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px dashed rgba(148, 163, 184, 0.6);
+            background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95));
+            font-size: 13px;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .pagination span {
+            padding: 0 4px;
+        }
+
+        .badge {
+            border-radius: 999px;
+            padding: 2px 7px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            font-size: 11px;
+        }
+
+        .lightbox-backdrop {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top, rgba(15, 23, 42, 0.2), rgba(0, 0, 0, 0.9));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 40;
+        }
+
+        .lightbox-content {
+            max-width: 80vw;
+            max-height: 80vh;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.7);
+            backdrop-filter: blur(22px);
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow:
+                0 30px 80px rgba(15, 23, 42, 0.95),
+                0 0 0 1px rgba(15, 23, 42, 0.7);
+            position: relative;
+        }
+
+        .lightbox-img {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity 0.18s ease;
+        }
+
+        .fade-enter-from,
+        .fade-leave-to {
+            opacity: 0;
+        }
     </style>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
 <body>
-    <h1>Комментарии</h1>
-    <button id="new-comment-btn">Написать комментарий</button>
+{% verbatim %}
+<div id="app" class="app-shell">
+    <header class="app-header">
+        <div class="app-title">
+            Комментарии
+            <span class="app-title-pill">SPA · Django API</span>
+        </div>
+        <button class="btn btn-sm" @click="startNewRootComment">
+            <span>+ Новый комментарий</span>
+        </button>
+    </header>
 
-    <div id="comment-form" class="comment-form">
-        <input type="text" class="username" placeholder="Имя"><br>
-        <input type="email" class="email" placeholder="Email"><br>
-        <textarea class="text" placeholder="Комментарий"></textarea><br>
-        <input type="hidden" class="captcha-id">
-        <input type="text" class="captcha-input" placeholder="Введите капчу"><br>
-        <img class="captcha-img" src="" alt="captcha">
-        <span class="refresh-captcha">Обновить капчу</span><br>
-        <button class="submit-comment">Отправить</button>
-    </div>
+    <main class="app-main">
+        <!-- Левая колонка: список комментариев -->
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">Комментарии</div>
+                    <div class="panel-subtitle">
+                        Сортировка LIFO по умолчанию, постранично по 25
+                    </div>
+                </div>
+                <div class="chip">
+                    {{ pagination.count || "…" }} всего
+                </div>
+            </div>
 
-    <div id="comments-container"></div>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th class="sortable" @click="toggleSort('username')">
+                        User name
+                        <span class="sort-indicator" v-if="orderingField === 'username'">
+                                {{ orderingDirection === 'asc' ? '▲' : '▼' }}
+                            </span>
+                    </th>
+                    <th class="sortable" @click="toggleSort('email')">
+                        Email
+                        <span class="sort-indicator" v-if="orderingField === 'email'">
+                                {{ orderingDirection === 'asc' ? '▲' : '▼' }}
+                            </span>
+                    </th>
+                    <th class="sortable" @click="toggleSort('created_at')">
+                        Дата
+                        <span class="sort-indicator" v-if="orderingField === 'created_at'">
+                                {{ orderingDirection === 'asc' ? '▲' : '▼' }}
+                            </span>
+                    </th>
+                    <th>Текст и ответы</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-if="loading">
+                    <td colspan="4">Загрузка…</td>
+                </tr>
+                <tr v-else-if="comments.length === 0">
+                    <td colspan="4">Пока нет комментариев — будьте первым.</td>
+                </tr>
+                <template v-else>
+                    <tr v-for="comment in comments" :key="comment.id">
+                        <td class="username-cell">
+                            {{ comment.username }}
+                        </td>
+                        <td>
+                            <span class="meta">{{ comment.email }}</span>
+                        </td>
+                        <td>
+                            <div class="meta">
+                                {{ formatDate(comment.created_at) }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="comment-text" v-html="comment.text"></div>
+
+                            <div class="inline-actions">
+                                <button class="btn btn-ghost btn-sm" @click="openReplyForm(comment)">
+                                    Ответить
+                                </button>
+                                <button
+                                    v-if="!expandedComments[comment.id]"
+                                    class="btn-ghost btn-sm btn"
+                                    @click="loadRepliesFor(comment)"
+                                >
+                                    Показать все ответы
+                                </button>
+                                <button
+                                    v-else
+                                    class="btn-ghost btn-sm btn"
+                                    @click="hideRepliesFor(comment)"
+                                >
+                                    Скрыть ответы
+                                </button>
+                            </div>
+
+                            <div class="reply-thread" v-if="comment.first_reply || (replies[comment.id] && replies[comment.id].length)">
+                                <!-- Первый ответ к корневому комментарию -->
+                                <div v-if="comment.first_reply">
+                                    <div class="reply-item">
+                                        <strong>{{ comment.first_reply.username }}</strong>
+                                        <span class="meta"> · {{ formatDate(comment.first_reply.created_at) }}</span>
+                                        <div v-html="comment.first_reply.text"></div>
+                                        <div class="inline-actions">
+                                            <button class="btn btn-ghost btn-sm" @click="openReplyForm(comment.first_reply)">
+                                                Ответить на ответ
+                                            </button>
+                                            <button
+                                                v-if="!expandedComments[comment.first_reply.id]"
+                                                class="btn-ghost btn-sm btn"
+                                                @click="loadRepliesFor(comment.first_reply)"
+                                            >
+                                                Показать ответы
+                                            </button>
+                                            <button
+                                                v-else
+                                                class="btn-ghost btn-sm btn"
+                                                @click="hideRepliesFor(comment.first_reply)"
+                                            >
+                                                Скрыть ответы
+                                            </button>
+                                        </div>
+
+                                        <!-- Вложенные ответы к первому ответу -->
+                                        <div
+                                            class="reply-thread"
+                                            v-if="expandedComments[comment.first_reply.id] && replies[comment.first_reply.id] && replies[comment.first_reply.id].length"
+                                        >
+                                            <div
+                                                v-for="child in replies[comment.first_reply.id]"
+                                                :key="child.id"
+                                                class="reply-item"
+                                            >
+                                                <strong>{{ child.username }}</strong>
+                                                <span class="meta"> · {{ formatDate(child.created_at) }}</span>
+                                                <div v-html="child.text"></div>
+                                                <div class="inline-actions">
+                                                    <button class="btn btn-ghost btn-sm" @click="openReplyForm(child)">
+                                                        Ответить на ответ
+                                                    </button>
+                                                    <button
+                                                        v-if="!expandedComments[child.id]"
+                                                        class="btn-ghost btn-sm btn"
+                                                        @click="loadRepliesFor(child)"
+                                                    >
+                                                        Показать ответы
+                                                    </button>
+                                                    <button
+                                                        v-else
+                                                        class="btn-ghost btn-sm btn"
+                                                        @click="hideRepliesFor(child)"
+                                                    >
+                                                        Скрыть ответы
+                                                    </button>
+                                                </div>
+
+                                                <!-- Ответы к ответу (вторая вложенность для ветки первого ответа) -->
+                                                <div
+                                                    class="reply-thread"
+                                                    v-if="expandedComments[child.id] && replies[child.id] && replies[child.id].length"
+                                                >
+                                                    <div
+                                                        v-for="grand in replies[child.id]"
+                                                        :key="grand.id"
+                                                        class="reply-item"
+                                                    >
+                                                        <strong>{{ grand.username }}</strong>
+                                                        <span class="meta"> · {{ formatDate(grand.created_at) }}</span>
+                                                        <div v-html="grand.text"></div>
+                                                        <div class="inline-actions">
+                                                            <button class="btn btn-ghost btn-sm" @click="openReplyForm(grand)">
+                                                                Ответить на ответ
+                                                            </button>
+                                                            <button
+                                                                v-if="!expandedComments[grand.id]"
+                                                                class="btn-ghost btn-sm btn"
+                                                                @click="loadRepliesFor(grand)"
+                                                            >
+                                                                Показать ответы
+                                                            </button>
+                                                            <button
+                                                                v-else
+                                                                class="btn-ghost btn-sm btn"
+                                                                @click="hideRepliesFor(grand)"
+                                                            >
+                                                                Скрыть ответы
+                                                            </button>
+                                                        </div>
+
+                                                        <div
+                                                            class="reply-thread"
+                                                            v-if="expandedComments[grand.id] && replies[grand.id] && replies[grand.id].length"
+                                                        >
+                                                            <div
+                                                                v-for="grandChild in replies[grand.id]"
+                                                                :key="grandChild.id"
+                                                                class="reply-item"
+                                                            >
+                                                                <strong>{{ grandChild.username }}</strong>
+                                                                <span class="meta"> · {{ formatDate(grandChild.created_at) }}</span>
+                                                                <div v-html="grandChild.text"></div>
+                                                                <div class="inline-actions">
+                                                                    <button class="btn btn-ghost btn-sm" @click="openReplyForm(grandChild)">
+                                                                        Ответить на ответ
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Прочие ответы к корневому комментарию -->
+                                <template v-if="expandedComments[comment.id]">
+                                    <div v-for="reply in (replies[comment.id] || [])" :key="reply.id" class="reply-item">
+                                        <strong>{{ reply.username }}</strong>
+                                        <span class="meta"> · {{ formatDate(reply.created_at) }}</span>
+                                        <div v-html="reply.text"></div>
+                                        <div class="inline-actions">
+                                            <button class="btn btn-ghost btn-sm" @click="openReplyForm(reply)">
+                                                Ответить на ответ
+                                            </button>
+                                            <button
+                                                v-if="!expandedComments[reply.id]"
+                                                class="btn-ghost btn-sm btn"
+                                                @click="loadRepliesFor(reply)"
+                                            >
+                                                Показать ответы
+                                            </button>
+                                            <button
+                                                v-else
+                                                class="btn-ghost btn-sm btn"
+                                                @click="hideRepliesFor(reply)"
+                                            >
+                                                Скрыть ответы
+                                            </button>
+                                        </div>
+
+                                        <!-- Вложенные ответы к ответу -->
+                                        <div
+                                            class="reply-thread"
+                                            v-if="expandedComments[reply.id] && replies[reply.id] && replies[reply.id].length"
+                                        >
+                                            <div
+                                                v-for="child in replies[reply.id]"
+                                                :key="child.id"
+                                                class="reply-item"
+                                            >
+                                                <strong>{{ child.username }}</strong>
+                                                <span class="meta"> · {{ formatDate(child.created_at) }}</span>
+                                                <div v-html="child.text"></div>
+                                                <div class="inline-actions">
+                                                    <button class="btn btn-ghost btn-sm" @click="openReplyForm(child)">
+                                                        Ответить на ответ
+                                                    </button>
+                                                    <button
+                                                        v-if="!expandedComments[child.id]"
+                                                        class="btn-ghost btn-sm btn"
+                                                        @click="loadRepliesFor(child)"
+                                                    >
+                                                        Показать ответы
+                                                    </button>
+                                                    <button
+                                                        v-else
+                                                        class="btn-ghost btn-sm btn"
+                                                        @click="hideRepliesFor(child)"
+                                                    >
+                                                        Скрыть ответы
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>
+
+            <div class="pagination" v-if="pagination.count">
+                    <span>
+                        Стр. {{ pagination.page }} из {{ pagination.totalPages }}
+                    </span>
+                <button class="btn-ghost btn btn-sm" :disabled="!pagination.prev" @click="goPage(pagination.page - 1)">
+                    Назад
+                </button>
+                <button class="btn-ghost btn btn-sm" :disabled="!pagination.next" @click="goPage(pagination.page + 1)">
+                    Вперёд
+                </button>
+            </div>
+        </section>
+
+        <!-- Правая колонка: форма (показывается по требованию) -->
+        <section class="panel" ref="formPanel" v-if="showForm">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">
+                        Новый комментарий
+                    </div>
+                    <div class="panel-subtitle">
+                        Обязательные поля: username, email, captcha, текст
+                    </div>
+                </div>
+                <div class="chip">
+                    <span>Предпросмотр в реальном времени</span>
+                </div>
+            </div>
+
+            <form @submit.prevent="submitComment">
+                <div class="field">
+                    <label class="field-label">
+                        User name <span>*</span>
+                    </label>
+                    <input
+                        class="input"
+                        v-model.trim="form.username"
+                        placeholder="Только латинские буквы и цифры"
+                    >
+                    <div class="helper">
+                        Например: <code>john_doe99</code> — фактически допускаются только латинские буквы и цифры.
+                    </div>
+                    <div class="error" v-if="errors.username">{{ errors.username }}</div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label">
+                        E-mail <span>*</span>
+                    </label>
+                    <input
+                        type="email"
+                        class="input"
+                        v-model.trim="form.email"
+                        placeholder="you@example.com"
+                    >
+                    <div class="error" v-if="errors.email">{{ errors.email }}</div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label">
+                        Home page
+                    </label>
+                    <input
+                        type="url"
+                        class="input"
+                        v-model.trim="form.homepage"
+                        placeholder="https://example.com"
+                    >
+                    <div class="helper">
+                        Необязательное поле.
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label">
+                        Сообщение <span>*</span>
+                    </label>
+
+                    <div class="tag-toolbar">
+                        <button type="button" class="tag-btn" @click="insertTag('i')">[i]</button>
+                        <button type="button" class="tag-btn" @click="insertTag('strong')">[strong]</button>
+                        <button type="button" class="tag-btn" @click="insertTag('code')">[code]</button>
+                        <button type="button" class="tag-btn" @click="insertLinkTag">[a]</button>
+                    </div>
+
+                    <textarea
+                        ref="textArea"
+                        class="textarea"
+                        v-model="form.text"
+                        placeholder="Поддерживаются теги: &lt;a&gt;, &lt;code&gt;, &lt;i&gt;, &lt;strong&gt;."
+                    ></textarea>
+                    <div class="helper">
+                        Только разрешённые HTML‑теги попадут в итоговый текст, остальные будут вырезаны на сервере.
+                    </div>
+                    <div class="error" v-if="errors.text">{{ errors.text }}</div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label">
+                        CAPTCHA <span>*</span>
+                    </label>
+                    <div class="captcha-row">
+                        <div class="captcha-img">
+                            <img v-if="captcha.image" :src="'data:image/png;base64,' + captcha.image" alt="captcha">
+                        </div>
+                        <button type="button" class="btn btn-icon btn-ghost" @click="loadCaptcha" :disabled="captcha.loading">
+                            ↻
+                        </button>
+                    </div>
+                    <input
+                        class="input"
+                        v-model.trim="form.captcha"
+                        placeholder="Введите символы с картинки"
+                    >
+                    <div class="error" v-if="errors.captcha">{{ errors.captcha }}</div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label">
+                        Файл (опционально)
+                    </label>
+                    <div class="files-row">
+                        <input type="file" @change="onFileChange">
+                        <div class="helper">
+                            Картинки JPG/PNG/GIF до 320×240 (будет уменьшено пропорционально).<br>
+                            Текстовые файлы: .txt до 100 КБ.
+                        </div>
+                        <div class="file-chip" v-if="selectedFile">
+                            Выбран файл: <strong>{{ selectedFile.name }}</strong>
+                            ({{ prettySize(selectedFile.size) }})
+                        </div>
+                        <div class="error" v-if="errors.file">{{ errors.file }}</div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="preview-pane" v-if="form.text || preview.html">
+                        <div class="preview-header">
+                            <div class="badge">Предпросмотр</div>
+                            <button type="button" class="btn-ghost btn btn-sm" @click="refreshPreview">
+                                Обновить
+                            </button>
+                        </div>
+                        <div v-html="preview.html || form.text"></div>
+                    </div>
+                </div>
+
+                <div class="field" style="margin-top: 4px;">
+                    <button type="submit" class="btn" :disabled="submitting">
+                        {{ submitting ? 'Отправка…' : 'Отправить комментарий' }}
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <transition name="fade">
+        <div v-if="lightbox.visible" class="lightbox-backdrop" @click.self="closeLightbox">
+            <div class="lightbox-content">
+                <button class="btn btn-icon btn-ghost lightbox-close" @click="closeLightbox">×</button>
+                <img :src="lightbox.src" alt="" class="lightbox-img">
+            </div>
+        </div>
+    </transition>
+</div>
+{% endverbatim %}
 
 <script>
-async function fetchJson(url) {
-    const res = await fetch(url);
-    return res.json();
-}
+const { createApp, ref, computed, onMounted } = Vue;
 
-async function loadComments() {
-    const container = document.getElementById('comments-container');
-    container.innerHTML = '';
-    const data = await fetchJson('/api/comments/');
-    data.results.forEach(comment => {
-        container.appendChild(createCommentDiv(comment));
-    });
-}
+createApp({
+    setup() {
+        const comments = ref([]);
+        const replies = ref({});
+        const expandedComments = ref({});
+        const loading = ref(false);
 
-function createCommentDiv(comment) {
-    const div = document.createElement('div');
-    div.className = 'comment';
-    div.dataset.commentId = comment.id;
-
-    div.innerHTML = `
-        <strong>${comment.username}</strong>: ${comment.text}<br>
-        <small>${new Date(comment.created_at).toLocaleString()}</small><br>
-        <span class="reply-button">Ответить</span>
-        <div class="replies"></div>
-    `;
-
-    const repliesDiv = div.querySelector('.replies');
-
-    if (comment.first_reply) {
-        repliesDiv.appendChild(createCommentDiv(comment.first_reply));
-    }
-
-    const showMoreBtn = document.createElement('span');
-    showMoreBtn.className = 'show-replies';
-    showMoreBtn.textContent = 'Показать еще';
-    repliesDiv.appendChild(showMoreBtn);
-
-    showMoreBtn.addEventListener('click', async () => {
-        const repliesData = await fetchJson(`/api/comments/${comment.id}/replies/`);
-        repliesDiv.innerHTML = '';
-        repliesData.results.forEach(r => {
-            repliesDiv.appendChild(createCommentDiv(r));
+        const pagination = ref({
+            count: 0,
+            page: 1,
+            totalPages: 1,
+            next: null,
+            prev: null,
         });
-    });
 
-    div.querySelector('.reply-button').addEventListener('click', () => {
-        let formDiv = div.querySelector('.reply-form');
-        if (!formDiv) {
-            formDiv = document.createElement('div');
-            formDiv.className = 'comment-form reply-form';
-            formDiv.innerHTML = `
-                <input type="text" class="r-username" placeholder="Имя"><br>
-                <input type="email" class="r-email" placeholder="Email"><br>
-                <textarea class="r-text" placeholder="Комментарий"></textarea><br>
-                <input type="hidden" class="r-captchaId">
-                <input type="text" class="r-captchaInput" placeholder="Введите капчу"><br>
-                <img class="r-captchaImg" src="" alt="captcha">
-                <span class="r-refreshCaptcha">Обновить капчу</span><br>
-                <button class="r-submitComment">Отправить</button>
-            `;
-            div.appendChild(formDiv);
-            setupForm(formDiv, comment.id);
+        const orderingField = ref("created_at");
+        const orderingDirection = ref("desc"); // LIFO по умолчанию
+
+        const form = ref({
+            username: "",
+            email: "",
+            homepage: "",
+            text: "",
+            captcha: "",
+            parent: null,
+        });
+
+        const errors = ref({});
+        const captcha = ref({ id: null, image: null, loading: false });
+        const submitting = ref(false);
+        const selectedFile = ref(null);
+        const preview = ref({ html: "" });
+
+        const lightbox = ref({ visible: false, src: null });
+
+        const formPanel = ref(null);
+        const textArea = ref(null);
+        const showForm = ref(false);
+
+        async function fetchJson(url, options = {}) {
+            const res = await fetch(url, options);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw data;
+            }
+            return data;
         }
-        formDiv.style.display = formDiv.style.display === 'none' ? 'block' : 'none';
-    });
 
-    return div;
-}
+        function buildCommentsUrl(page = 1) {
+            const params = new URLSearchParams();
+            params.set("page", page.toString());
+            if (orderingField.value) {
+                const prefix = orderingDirection.value === "desc" ? "-" : "";
+                params.set("ordering", prefix + orderingField.value);
+            }
+            return "/api/comments/?" + params.toString();
+        }
 
-function setupForm(formDiv, parentId) {
-    const captchaImg = formDiv.querySelector('.captcha-img, .r-captchaImg');
-    const captchaIdInput = formDiv.querySelector('.captcha-id, .r-captchaId');
-    const captchaInput = formDiv.querySelector('.captcha-input, .r-captchaInput');
-    const refreshBtn = formDiv.querySelector('.refresh-captcha, .r-refreshCaptcha');
-    const submitBtn = formDiv.querySelector('.submit-comment, .r-submitComment');
-    const usernameInput = formDiv.querySelector('.username, .r-username');
-    const emailInput = formDiv.querySelector('.email, .r-email');
-    const textInput = formDiv.querySelector('.text, .r-text');
+        async function loadComments(page = 1) {
+            loading.value = true;
+            try {
+                const data = await fetchJson(buildCommentsUrl(page));
+                comments.value = data.results || [];
 
-    async function loadCaptcha() {
-        const res = await fetch('/api/captcha/');
-        const data = await res.json();
-        captchaIdInput.value = data.captcha_id;
-        captchaImg.src = 'data:image/png;base64,' + data.image;
-    }
+                const pageSize = (data.results || []).length || 25;
+                const total = data.count || 0;
+                const totalPages = total ? Math.ceil(total / pageSize) : 1;
 
-    loadCaptcha();
-    refreshBtn.addEventListener('click', loadCaptcha);
+                pagination.value = {
+                    count: total,
+                    page,
+                    totalPages,
+                    next: data.next,
+                    prev: data.previous,
+                };
+            } catch (e) {
+                console.error("Ошибка загрузки комментариев", e);
+            } finally {
+                loading.value = false;
+            }
+        }
 
-    submitBtn.addEventListener('click', async () => {
-        const payload = {
-            username: usernameInput.value,
-            email: emailInput.value,
-            text: textInput.value,
-            captcha: captchaInput.value,
-            captcha_id: captchaIdInput.value,
-            parent: parentId
+        async function loadRepliesFor(target) {
+            try {
+                const data = await fetchJson(`/api/comments/${target.id}/replies/`);
+                replies.value = {
+                    ...replies.value,
+                    [target.id]: data.results || [],
+                };
+                expandedComments.value = {
+                    ...expandedComments.value,
+                    [target.id]: true,
+                };
+            } catch (e) {
+                console.error("Ошибка загрузки ответов", e);
+            }
+        }
+
+        function hideRepliesFor(target) {
+            const id = target && target.id;
+            if (!id) return;
+
+            expandedComments.value = {
+                ...expandedComments.value,
+                [id]: false,
+            };
+            replies.value = {
+                ...replies.value,
+                [id]: [],
+            };
+
+            // Если это корневой комментарий — скрываем также детей первого ответа.
+            if (target.first_reply && target.first_reply.id) {
+                expandedComments.value = {
+                    ...expandedComments.value,
+                    [target.first_reply.id]: false,
+                };
+                replies.value = {
+                    ...replies.value,
+                    [target.first_reply.id]: [],
+                };
+            }
+        }
+
+        function toggleSort(field) {
+            if (orderingField.value === field) {
+                orderingDirection.value = orderingDirection.value === "asc" ? "desc" : "asc";
+            } else {
+                orderingField.value = field;
+                orderingDirection.value = "asc";
+            }
+            loadComments(1);
+        }
+
+        function goPage(page) {
+            if (page < 1 || page > pagination.value.totalPages) return;
+            loadComments(page);
+        }
+
+        function formatDate(iso) {
+            const d = new Date(iso);
+            return d.toLocaleString();
+        }
+
+        async function loadCaptcha() {
+            captcha.value.loading = true;
+            try {
+                const data = await fetchJson("/api/captcha/");
+                captcha.value.id = data.captcha_id;
+                captcha.value.image = data.image;
+            } catch (e) {
+                console.error("Ошибка загрузки капчи", e);
+            } finally {
+                captcha.value.loading = false;
+            }
+        }
+
+        function validateClient() {
+            const errs = {};
+            if (!form.value.username) {
+                errs.username = "Укажите имя пользователя";
+            } else if (!/^[a-zA-Z0-9]+$/.test(form.value.username)) {
+                errs.username = "Только латинские буквы и цифры";
+            }
+
+            if (!form.value.email) {
+                errs.email = "Укажите email";
+            } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.value.email)) {
+                errs.email = "Некорректный email";
+            }
+
+            if (!form.value.text || !form.value.text.trim()) {
+                errs.text = "Текст комментария не может быть пустым";
+            }
+
+            if (!form.value.captcha) {
+                errs.captcha = "Введите символы с картинки";
+            }
+
+            if (selectedFile.value) {
+                const file = selectedFile.value;
+                const isImage = /^image\/(png|jpe?g|gif)$/i.test(file.type);
+                const isText = file.type === "text/plain" || /\.txt$/i.test(file.name);
+                if (!isImage && !isText) {
+                    errs.file = "Допустимы только изображения JPG, PNG, GIF или TXT-файлы";
+                } else if (isText && file.size > 100 * 1024) {
+                    errs.file = "Текстовый файл не должен превышать 100 КБ";
+                }
+            }
+
+            errors.value = errs;
+            return Object.keys(errs).length === 0;
+        }
+
+        async function submitComment() {
+            if (!validateClient()) {
+                return;
+            }
+
+            submitting.value = true;
+            const payload = {
+                username: form.value.username,
+                email: form.value.email,
+                homepage: form.value.homepage || null,
+                text: form.value.text,
+                captcha: form.value.captcha,
+                captcha_id: captcha.value.id,
+                parent: form.value.parent,
+            };
+
+            try {
+                const data = await fetchJson("/api/comments/create/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+
+                console.log("Создан комментарий", data);
+                form.value.text = "";
+                form.value.captcha = "";
+                form.value.parent = null;
+                selectedFile.value = null;
+                preview.value.html = "";
+
+                await loadCaptcha();
+                await loadComments(1);
+
+                // Скрываем форму после успешной отправки;
+                // чтобы создать новый комментарий или ответ,
+                // пользователь снова нажимает соответствующую кнопку.
+                showForm.value = false;
+            } catch (e) {
+                console.error("Ошибка при создании комментария", e);
+                if (e && typeof e === "object") {
+                    const serverErrors = {};
+                    if (e.username) serverErrors.username = e.username.join ? e.username.join(" ") : String(e.username);
+                    if (e.email) serverErrors.email = e.email.join ? e.email.join(" ") : String(e.email);
+                    if (e.text) serverErrors.text = e.text.join ? e.text.join(" ") : String(e.text);
+                    if (e.non_field_errors) {
+                        serverErrors.captcha = e.non_field_errors.join
+                            ? e.non_field_errors.join(" ")
+                            : String(e.non_field_errors);
+                    }
+                    errors.value = { ...errors.value, ...serverErrors };
+                }
+                await loadCaptcha();
+            } finally {
+                submitting.value = false;
+            }
+        }
+
+        function openReplyForm(comment) {
+            form.value.parent = comment.id;
+            showForm.value = true;
+            scrollToForm();
+        }
+
+        function scrollToForm() {
+            if (formPanel.value) {
+                formPanel.value.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
+
+        function startNewRootComment() {
+            form.value.parent = null;
+            showForm.value = true;
+            scrollToForm();
+        }
+
+        function insertTag(tagName) {
+            if (!textArea.value) return;
+            const el = textArea.value;
+            const start = el.selectionStart || 0;
+            const end = el.selectionEnd || 0;
+            const before = form.value.text.slice(0, start);
+            const selected = form.value.text.slice(start, end);
+            const after = form.value.text.slice(end);
+            const open = `<${tagName}>`;
+            const close = `</${tagName}>`;
+            form.value.text = before + open + selected + close + after;
+            requestAnimationFrame(() => {
+                const pos = start + open.length + selected.length;
+                el.setSelectionRange(pos, pos);
+                el.focus();
+            });
+        }
+
+        function insertLinkTag() {
+            if (!textArea.value) return;
+            const el = textArea.value;
+            const start = el.selectionStart || 0;
+            const end = el.selectionEnd || 0;
+            const before = form.value.text.slice(0, start);
+            const selected = form.value.text.slice(start, end) || "ссылка";
+            const after = form.value.text.slice(end);
+            const open = `<a href="" title="">`;
+            const close = "</a>";
+            form.value.text = before + open + selected + close + after;
+            requestAnimationFrame(() => {
+                const pos = start + open.length + selected.length;
+                el.setSelectionRange(pos, pos);
+                el.focus();
+            });
+        }
+
+        function onFileChange(event) {
+            const file = event.target.files[0];
+            selectedFile.value = file || null;
+            if (!file) return;
+
+            const isImage = /^image\/(png|jpe?g|gif)$/i.test(file.type);
+            const isText = file.type === "text/plain" || /\.txt$/i.test(file.name);
+
+            if (!isImage && !isText) {
+                errors.value.file = "Допустимы только изображения JPG, PNG, GIF или TXT-файлы";
+            } else if (isText && file.size > 100 * 1024) {
+                errors.value.file = "Текстовый файл не должен превышать 100 КБ";
+            } else {
+                delete errors.value.file;
+            }
+        }
+
+        function prettySize(bytes) {
+            if (bytes < 1024) return bytes + " Б";
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " КБ";
+            return (bytes / (1024 * 1024)).toFixed(1) + " МБ";
+        }
+
+        function refreshPreview() {
+            preview.value.html = form.value.text;
+        }
+
+        function closeLightbox() {
+            lightbox.value.visible = false;
+            lightbox.value.src = null;
+        }
+
+        onMounted(async () => {
+            await Promise.all([loadComments(1), loadCaptcha()]);
+        });
+
+        return {
+            comments,
+            replies,
+            expandedComments,
+            pagination,
+            orderingField,
+            orderingDirection,
+            loading,
+            form,
+            errors,
+            captcha,
+            submitting,
+            selectedFile,
+            preview,
+            lightbox,
+            formPanel,
+            textArea,
+            showForm,
+
+            formatDate,
+            toggleSort,
+            goPage,
+            loadRepliesFor,
+            hideRepliesFor,
+            loadCaptcha,
+            submitComment,
+            openReplyForm,
+            scrollToForm,
+            startNewRootComment,
+            insertTag,
+            insertLinkTag,
+            onFileChange,
+            prettySize,
+            refreshPreview,
+            closeLightbox,
         };
-
-        const res = await fetch('/api/comments/create/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-            alert('Комментарий добавлен!');
-            formDiv.style.display = 'none';
-            loadComments();
-        } else {
-            alert('Ошибка: ' + JSON.stringify(data));
-            loadCaptcha();
-        }
-    });
-}
-
-// Главная форма
-document.getElementById('new-comment-btn').addEventListener('click', () => {
-    const formDiv = document.getElementById('comment-form');
-    formDiv.style.display = formDiv.style.display === 'none' ? 'block' : 'none';
-    setupForm(formDiv, null);
-});
-
-// Загрузка комментариев при старте
-loadComments();
+    },
+}).mount("#app");
 </script>
 </body>
 </html>

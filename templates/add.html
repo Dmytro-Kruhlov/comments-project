@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Добавить комментарий</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Добавить комментарий</h1>
+
+    <form id="comment-form">
+        <p>
+            <label>Username: <input type="text" name="username" required></label>
+        </p>
+        <p>
+            <label>Email: <input type="email" name="email" required></label>
+        </p>
+        <p>
+            <label>Homepage: <input type="url" name="homepage"></label>
+        </p>
+        <p>
+            <img id="captcha-image" src="" alt="Captcha">
+            <button type="button" id="reload-captcha">Обновить капчу</button>
+        </p>
+        <p>
+            <label>Captcha: <input type="text" name="captcha" required></label>
+            <input type="hidden" name="captcha_id">
+        </p>
+        <p>
+            <label>Комментарий: <textarea name="text" required></textarea></label>
+        </p>
+        <button type="submit">Отправить</button>
+    </form>
+
+    <a href="/">Назад к списку комментариев</a>
+
+    <script>
+        async function loadCaptcha() {
+            const res = await fetch('/api/captcha/');
+            const data = await res.json();
+
+            document.getElementById('captcha-image').src = 'data:image/png;base64,' + data.image;
+            document.querySelector('input[name="captcha_id"]').value = data.captcha_id;
+        }
+
+        document.getElementById('reload-captcha').addEventListener('click', loadCaptcha);
+
+        // Загружаем капчу при старте
+        loadCaptcha();
+
+        document.getElementById('comment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const payload = Object.fromEntries(formData.entries());
+
+            const res = await fetch('/api/comments/create/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                alert('Комментарий добавлен!');
+                window.location.href = '/';
+            } else {
+                alert('Ошибка: ' + JSON.stringify(data));
+                loadCaptcha(); // обновляем капчу при ошибке
+            }
+        });
+    </script>
+</body>
+</html>

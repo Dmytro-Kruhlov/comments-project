@@ -16,10 +16,6 @@ def index(request):
     return render(request, "index.html")
 
 
-def add_comment(request):
-    return render(request, "add.html")
-
-
 class RootCommentListAPIView(generics.ListAPIView):
 
     queryset = Comment.objects.filter(parent=None)
